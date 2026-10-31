@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>훈련일지</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&display=swap">
+<style>
+:root{
+  --bg:#F1F2F4;--surface:#FFFFFF;--text:#111418;--muted:#6B7280;--line:#E3E5E9;
+  --h:#FF7A00;--w:#3B6BFF;--r:#1FAF5A;--on-h:#fff;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#0E1013;--surface:#181B20;--text:#F2F4F7;--muted:#8D95A3;--line:#2A2F37;--w:#6C93FF}
+}
+:root[data-theme="dark"]{--bg:#0E1013;--surface:#181B20;--text:#F2F4F7;--muted:#8D95A3;--line:#2A2F37;--w:#6C93FF}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif}
+.wrap{max-width:480px;margin:0 auto;padding:16px 16px 40px}
+.num{font-family:"Barlow Condensed","Arial Narrow",Impact,sans-serif}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+header h1{margin:0;font-size:22px;font-weight:800;letter-spacing:-.02em}
+.nav{display:flex;align-items:center;gap:4px}
+.nav button{width:40px;height:40px;border:0;border-radius:12px;background:var(--surface);color:var(--text);font-size:18px;cursor:pointer}
+.nav button:active{transform:scale(.94)}
+.today-btn{width:auto!important;padding:0 12px;font-size:13px!important;font-weight:600}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.stat{background:var(--surface);border-radius:14px;padding:9px 12px 9px;border-top:3px solid var(--c)}
+.stat b{display:block;font-size:24px;line-height:1;font-weight:800}
+.stat b small{font-size:12px;font-weight:600;color:var(--muted);margin-left:2px}
+.stat span{display:block;margin-top:4px;font-size:12px;font-weight:600;color:var(--muted)}
+.cal{background:var(--surface);border-radius:20px;padding:12px 10px 10px}
+.mtitle{font-size:28px;font-weight:800;letter-spacing:-.02em;text-align:center;padding:4px 0 14px}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.dow{text-align:center;font-size:12px;color:var(--muted);padding-bottom:4px;font-weight:600}
+.dow:first-child{color:var(--r)}
+.day{min-height:74px;border:0;border-radius:10px;background:transparent;color:var(--text);font-size:14px;font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:6px;gap:5px;cursor:pointer;position:relative}
+.day.empty{visibility:hidden}
+.day.today{box-shadow:inset 0 0 0 1.5px var(--muted)}
+.day.sel{background:var(--line);color:var(--text)}
+.dots{display:flex;flex-direction:column;align-items:center;gap:1px}
+.dots i{font-style:normal;font-size:10px;font-weight:800;line-height:1.15;letter-spacing:-.03em;color:var(--c)}
+.panel{margin-top:16px;background:var(--surface);border-radius:20px;padding:16px}
+.panel h2{margin:0 0 12px;font-size:16px;font-weight:700}
+.opts{display:grid;gap:8px}
+.opt{display:flex;align-items:center;justify-content:space-between;width:100%;height:56px;padding:0 18px;border-radius:14px;border:2px solid var(--line);background:transparent;color:var(--text);font-size:17px;font-weight:700;cursor:pointer;font-family:inherit}
+.opt .box{width:26px;height:26px;border-radius:8px;border:2px solid var(--line);display:grid;place-items:center;font-size:16px;color:transparent}
+.opt.on{background:var(--c);border-color:var(--c);color:#fff}
+.opt.on[data-k="h"]{color:var(--on-h)}
+.opt.on .box{background:rgba(255,255,255,.28);border-color:transparent;color:inherit}
+.opt:active{transform:scale(.98)}
+.legend{display:none;justify-content:center;gap:14px;margin-top:10px;font-size:12px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:5px}
+.legend i{font-style:normal;font-weight:800;color:var(--c)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>훈련일지</h1>
+    <div class="nav">
+      <button id="prev" aria-label="이전 달">‹</button>
+      <button id="now" class="today-btn">오늘</button>
+      <button id="next" aria-label="다음 달">›</button>
+    </div>
+  </header>
+
+  <section class="stats" id="stats"></section>
+
+  <section class="cal">
+    <div class="mtitle" id="mtitle"></div>
+    <div class="grid" id="grid"></div>
+    <div class="legend">
+      <span style="--c:var(--h)"><i>H</i>HYROX</span>
+      <span style="--c:var(--w)"><i>W</i>웨이트</span>
+      <span style="--c:var(--r)"><i>R</i>러닝</span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2 id="ptitle"></h2>
+    <div class="opts" id="opts"></div>
+  </section>
+</div>
+
+<script>
+const TYPES=[{k:'h',n:'HYROX',c:'var(--h)'},{k:'w',n:'웨이트',c:'var(--w)'},{k:'r',n:'러닝',c:'var(--r)'}];
+const KEY='trainlog:v1';
+let data={};
+try{data=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){data={}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}}
+
+const pad=n=>String(n).padStart(2,'0');
+const fmt=(y,m,d)=>y+'-'+pad(m+1)+'-'+pad(d);
+const now=new Date();
+const todayStr=fmt(now.getFullYear(),now.getMonth(),now.getDate());
+let vy=now.getFullYear(),vm=now.getMonth(),sel=todayStr;
+const DOW=['일','월','화','수','목','금','토'];
+
+function render(){
+  // stats
+  const last=new Date(vy,vm+1,0).getDate();
+  const cnt={h:0,w:0,r:0};
+  for(let d=1;d<=last;d++){
+    (data[fmt(vy,vm,d)]||[]).forEach(k=>{if(k in cnt)cnt[k]++});
+  }
+  document.getElementById('stats').innerHTML=TYPES.map(t=>
+    '<div class="stat" style="--c:'+t.c+'"><b class="num">'+cnt[t.k]+'<small>회</small></b><span>'+t.n+'</span></div>').join('');
+
+  // calendar
+  document.getElementById('mtitle').textContent=vy+'년 '+(vm+1)+'월';
+  let h=DOW.map(d=>'<div class="dow">'+d+'</div>').join('');
+  const first=new Date(vy,vm,1).getDay();
+  for(let i=0;i<first;i++)h+='<div class="day empty"></div>';
+  for(let d=1;d<=last;d++){
+    const s=fmt(vy,vm,d),list=data[s]||[];
+    const dots=TYPES.filter(t=>list.includes(t.k)).map(t=>'<i style="--c:'+t.c+'">'+t.n+'</i>').join('');
+    h+='<button class="day'+(s===todayStr?' today':'')+(s===sel?' sel':'')+'" data-d="'+s+'"><span>'+d+'</span><span class="dots">'+dots+'</span></button>';
+  }
+  document.getElementById('grid').innerHTML=h;
+
+  // panel
+  const p=sel.split('-').map(Number);
+  const dt=new Date(p[0],p[1]-1,p[2]);
+  document.getElementById('ptitle').textContent=p[1]+'월 '+p[2]+'일 '+DOW[dt.getDay()]+'요일';
+  const cur=data[sel]||[];
+  document.getElementById('opts').innerHTML=TYPES.map(t=>
+    '<button class="opt'+(cur.includes(t.k)?' on':'')+'" data-k="'+t.k+'" style="--c:'+t.c+'"><span>'+t.n+'</span><span class="box">✓</span></button>').join('');
+}
+
+document.getElementById('grid').addEventListener('click',e=>{
+  const b=e.target.closest('.day[data-d]');
+  if(b){sel=b.dataset.d;render();}
+});
+document.getElementById('opts').addEventListener('click',e=>{
+  const b=e.target.closest('.opt');
+  if(!b)return;
+  const k=b.dataset.k,cur=data[sel]||[];
+  const next=cur.includes(k)?cur.filter(x=>x!==k):cur.concat(k);
+  if(next.length)data[sel]=next;else delete data[sel];
+  save();render();
+});
+function move(n){
+  const d=new Date(vy,vm+n,1);vy=d.getFullYear();vm=d.getMonth();render();
+}
+document.getElementById('prev').onclick=()=>move(-1);
+document.getElementById('next').onclick=()=>move(1);
+document.getElementById('now').onclick=()=>{vy=now.getFullYear();vm=now.getMonth();sel=todayStr;render();};
+render();
+</script>
+</body>
+</html>
